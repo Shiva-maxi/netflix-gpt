@@ -7,24 +7,24 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../utils/firebase";
-import { useNavigate } from "react-router-dom";
+
 import { useDispatch } from "react-redux";
 import { adduser } from "../utils/userslice";
 const Login = () => {
-  const [signin, isSignin] = useState(true);
+  const [signin, setIssignin] = useState(true);
   const email = useRef(null);
   const password = useRef(null);
   const name = useRef(null);
   const [errormessage, setErrormessage] = useState(null);
-  const navigate = useNavigate();
+   
   const dispatch=useDispatch();
   const togglehandler = () => {
-    isSignin(!signin);
+    setIssignin(!signin);
   };
   const Handlevalidation = () => {
     const e = email.current.value;
     const p = password.current.value;
-    const n = name.current.value;
+    
     console.log(e, p);
     const message = validation(e, p);
     setErrormessage(message);
@@ -39,9 +39,9 @@ const Login = () => {
           const user = userCredential.user;
           console.log(user);
           updateProfile(user, {
-            displayName: n,
-            photoURL:
-              "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png",
+            displayName: name.current.value,
+            photoURL:user?.photoURL
+               ,
           })
             .then(() => {
               const {uid,email,displayName,photoURL}=auth.currentUser;
@@ -54,7 +54,7 @@ const Login = () => {
                   photoURL: photoURL,
                 })
               );
-              navigate("/Browse");
+               
               // Profile updated!
               // ...
             })
@@ -73,18 +73,19 @@ const Login = () => {
           // ..
         });
     } else {
-      signInWithEmailAndPassword(auth, e, p)
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+    )
         .then((userCredential) => {
-          // Signed in
-          const user = userCredential.user;
-          console.log(user);
-          navigate("/Browse");
-          // ...
+            // Signed in
+            const user = userCredential.user;
         })
         .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          setErrormessage(errorCode + "-" + errorMessage);
+            const errorCode = error.code;
+            const errorMessage = error.message;
+             setErrormessage(errorCode + "-" + errorMessage);
         });
     }
   };
@@ -133,7 +134,7 @@ const Login = () => {
           {signin ? "Sign In" : "Sign Up"}
         </button>
         <p className="mt-4 " onClick={() => togglehandler()}>
-          {isSignin
+          {signin
             ? "New to Netflix? Sign Up Now"
             : "Already Registered?Sign In Now"}
         </p>
