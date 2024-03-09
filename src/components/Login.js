@@ -1,43 +1,92 @@
 import React, { useRef, useState } from "react";
 import Header from "./Header";
 import { validation } from "../utils/Validate";
-import {  createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { adduser } from "../utils/userslice";
 const Login = () => {
   const [signin, isSignin] = useState(true);
   const email = useRef(null);
   const password = useRef(null);
+  const name = useRef(null);
   const [errormessage, setErrormessage] = useState(null);
+  const navigate = useNavigate();
+  const dispatch=useDispatch();
   const togglehandler = () => {
     isSignin(!signin);
   };
-  const handlevalidation = () => {
+  const Handlevalidation = () => {
     const e = email.current.value;
     const p = password.current.value;
+    const n = name.current.value;
     console.log(e, p);
     const message = validation(e, p);
     setErrormessage(message);
-    if(message){
+    if (message) {
       return;
     }
-     
-      if (!signin) {
-        createUserWithEmailAndPassword(auth, e, p)
+
+    if (!signin) {
+      createUserWithEmailAndPassword(auth, e, p)
         .then((userCredential) => {
-          // Signed up 
+          // Signed up
           const user = userCredential.user;
           console.log(user);
+          updateProfile(user, {
+            displayName: n,
+            photoURL:
+              "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png",
+          })
+            .then(() => {
+              const {uid,email,displayName,photoURL}=auth.currentUser;
+              dispatch(
+                
+                adduser({
+                  uid: uid,
+                  email: email,
+                  displayName: displayName,
+                  photoURL: photoURL,
+                })
+              );
+              navigate("/Browse");
+              // Profile updated!
+              // ...
+            })
+            .catch((error) => {
+              // An error occurred
+              // ...
+              setErrormessage(error.message);
+            });
+
           // ...
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          console.log(errorCode,errorMessage)
+          console.log(errorCode, errorMessage);
           // ..
         });
-      
+    } else {
+      signInWithEmailAndPassword(auth, e, p)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/Browse");
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrormessage(errorCode + "-" + errorMessage);
+        });
     }
-    
   };
   return (
     <div>
@@ -58,6 +107,7 @@ const Login = () => {
             type="text"
             className="p-4 my-2 w-full bg-gray-700 rounded-lg"
             placeholder="Full Name"
+            ref={name}
           ></input>
         )}
         <input
@@ -76,7 +126,7 @@ const Login = () => {
           <p className="font-bold text-red-600 text-lg">{errormessage}</p>
         )}
         <button
-          onClick={() => handlevalidation()}
+          onClick={() => Handlevalidation()}
           className="bg-red-700 p-2 w-full py-3 my-3 rounded-lg"
         >
           {" "}
