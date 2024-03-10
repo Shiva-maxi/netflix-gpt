@@ -8,7 +8,11 @@ const Maincontainer = () => {
   if(movies==null){
     return;
   }
-  const mainmovie=movies[2];
+  const getrandom=()=>{
+    return Math.floor(Math.random()*20);
+  }
+  const r=getrandom();
+  const mainmovie=movies[r];
   const {original_title,overview,id}=mainmovie;
   console.log(mainmovie);
   return (
