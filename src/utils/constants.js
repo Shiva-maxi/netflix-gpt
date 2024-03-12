@@ -7,3 +7,4 @@ export const options = {
 };
 
 export const poster_url="https://image.tmdb.org/t/p/w500/"
+export const openaiapikey="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";
